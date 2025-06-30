@@ -28,6 +28,12 @@ func main() {
 	}
 	
 	r := gin.Default()
+	
+	// Render のプロキシ設定
+	if config.Environment == "production" {
+		r.SetTrustedProxies([]string{"10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"})
+	}
+	
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     config.CORSAllowedOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -36,6 +42,21 @@ func main() {
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
+	// ヘルスチェックエンドポイント
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status": "healthy",
+			"service": "go-shop-backend",
+			"environment": config.Environment,
+		})
+	})
+	
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status": "ok",
+		})
+	})
+	
 	// 認証不要ルート
 	r.POST("/register", registerHandler(db))
 	r.POST("/login", loginHandler(db))

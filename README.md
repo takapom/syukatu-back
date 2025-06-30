@@ -35,7 +35,17 @@ The server will start on http://localhost:8080
 4. Select this repository
 5. Render will automatically detect the `render.yaml` configuration
 6. The PostgreSQL database will be created automatically
-7. Update `CORS_ALLOWED_ORIGINS` in the environment variables to match your frontend URL
+7. Update environment variables in Render dashboard:
+   - `CORS_ALLOWED_ORIGINS`: Set to your frontend URL (e.g., https://your-frontend.com)
+   - Verify that `ENVIRONMENT` is set to `production`
+   - Ensure `PORT` is set to `10000`
+8. Deploy the service
+
+### Important Notes for Render
+- The service listens on port 10000 (Render's default)
+- Health check endpoint is available at `/` and `/health`
+- Environment is automatically set to production mode
+- Trusted proxies are configured for Render's infrastructure
 
 ## Database
 
