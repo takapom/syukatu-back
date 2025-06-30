@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -9,16 +10,26 @@ import (
 )
 
 func main() {
+	// 設定を読み込む
+	config := LoadConfig()
+	
+	// JWT 鍵を初期化
+	InitAuth(config)
+
 	// ① DB 接続＆マイグレーション
-	db, err := openGormDB()
+	db, err := openGormDB(config)
 	if err != nil {
 		log.Fatalf("DB 接続エラー: %v", err)
 	}
 
 	// ② Gin ルーター初期化
+	if config.Environment == "production" {
+		gin.SetMode(gin.ReleaseMode)
+	}
+	
 	r := gin.Default()
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"}, // 許可するオリジン
+		AllowOrigins:     config.CORSAllowedOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -56,8 +67,9 @@ func main() {
 
 
 	// サーバ起動
-	log.Println("Server running on :8080")
-	if err := r.Run(":8080"); err != nil {
+	addr := fmt.Sprintf(":%s", config.Port)
+	log.Printf("Server running on %s (Environment: %s)", addr, config.Environment)
+	if err := r.Run(addr); err != nil {
 		log.Fatalf("サーバ起動エラー: %v", err)
 	}
 }
